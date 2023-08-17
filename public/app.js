@@ -2,6 +2,9 @@ var button = document.getElementById("btn_scan");
 var Bluetooth_Table = document.getElementById("bluetooth_Table");
 var sample_output = document.getElementById("para_sample");
 var TemperatureLevel = document.getElementById("temperature_level");
+var QrResult = document.getElementById("qr_result");
+
+
 var isBluetoothPresent = false;
 var isConnected = false;
 var bluetoothDeviceServer = null;
@@ -13,6 +16,40 @@ if ('serviceWorker' in navigator) {
         .then(function () {
             console.log('SW registered');
         });
+}
+
+
+ function enableCamera()
+{
+
+    // This method will trigger user permissions
+Html5Qrcode.getCameras().then(devices => {
+    /**
+     * devices would be an array of objects of type:
+     * { id: "id", label: "label" }
+     */
+    if (devices && devices.length) {
+      var cameraId = devices[0].id;
+      // .. use this to start scanning.
+      var html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", { fps: 10, qrbox: 250 });
+            
+    function onScanSuccess(decodedText, decodedResult) {
+        // Handle on success condition with the decoded text or result.
+        console.log(`Camera Scan result: ${decodedText}`, decodedResult);
+        QrResult.innerHTML = decodedText;
+
+        // ...
+        html5QrcodeScanner.clear();
+        // ^ this will stop the scanner (video feed) and clear the scan area.
+    }
+    
+    html5QrcodeScanner.render(onScanSuccess);
+    }
+  }).catch(err => {
+    console.log("Eror ${err}");
+  });
+   
 }
 
 async function ClickedButton() {
@@ -47,6 +84,7 @@ async function Connect_to_Bluetooth() {
     if (isBluetoothPresent == true) {
         Bluetooth_Table.rows.item(1).cells.item(1).innerHTML = "Connecting";
         try {
+            // bluetoothDevice=await navigator.bluetooth.
             bluetoothDevice = await navigator.bluetooth.requestDevice(
                 {
                     filters: [
@@ -140,6 +178,7 @@ async function success() {
     document.querySelector('#startNotifications').disabled = false;
     document.querySelector('#stopNotifications').disabled = true;
 }
+
 async function onStartNotificationsButtonClick() {
     try {
         console.log('Starting Temperature Level Notifications...');
